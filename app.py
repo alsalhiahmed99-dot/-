@@ -6,17 +6,6 @@ from datetime import datetime
 # إعدادات الصفحة
 st.set_page_config(page_title="منظم فراس الذكي", page_icon="📅", layout="centered")
 
-# تنسيق CSS بسيط لتحسين المظهر
-st.markdown("""
-    <style>
-    .main { background-color: #f5f7f9; }
-    .stButton>button { width: 100%; border-radius: 10px; height: 3em; background-color: #007bff; color: white; }
-    </style>
-    """, unsafe_allow_html=True)
-
-st.title("📅 منظم المهام وتواقيت الصلاة")
-st.write(f"اليوم: {datetime.now().strftime('%Y-%m-%d')}")
-
 # --- الجزء الأول: اختيار المدينة وتواقيت الصلاة ---
 st.sidebar.header("📍 الإعدادات")
 city = st.sidebar.selectbox("اختر مدينتك في عُمان:", 
@@ -45,4 +34,11 @@ st.divider()
 # --- الجزء الثاني: إدارة المهام ---
 st.subheader("📝 جدول المهام اليومي")
 
+# هذا السطر اللي كان فيه المشكلة، الحين ضبطناه
 if 'tasks' not in st.session_state:
+    st.session_state.tasks = []
+
+# فورم إضافة مهمة جديدة
+with st.expander("➕ أضف مهمة جديدة"):
+    with st.form("add_task"):
+        t_name = st.text_input("ماذا ستفعل؟")
