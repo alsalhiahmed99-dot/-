@@ -4,13 +4,13 @@ from datetime import datetime
 import requests
 
 # إعدادات الصفحة
-st.set_page_config(page_title="مُنظم جدول فراس الذكي", layout="wide")
+st.set_page_config(page_title="مُنظم جدول فراس", layout="wide")
 
 st.title("📅 منظم الجدول اليومي - فراس")
-st.write("مرحباً فراس، هذا البرنامج يساعدك في تنظيم مهامك اليومية مع تواقيت الصلاة.")
 
 # --- الجزء الأول: تواقيت الصلاة ---
 def get_prayer_times():
+    # مدينة مسقط كمثال
     url = "http://api.aladhan.com/v1/timingsByCity?city=Muscat&country=Oman&method=1"
     try:
         response = requests.get(url).json()
@@ -21,12 +21,12 @@ def get_prayer_times():
 timings = get_prayer_times()
 
 if timings:
-    st.subheader("🕌 تواقيت الصلاة اليوم")
+    st.subheader("🕌 تواقيت الصلاة اليوم في عُمان")
     cols = st.columns(5)
     prayers = {"Fajr": "الفجر", "Dhuhr": "الظهر", "Asr": "العصر", "Maghrib": "المغرب", "Isha": "العشاء"}
-    
     for i, (key, val) in enumerate(prayers.items()):
-        cols[i].metric(label=val, value=timings[key])
+        cols[i].metric(label=val, value=val) # تم تعديل العرض ليناسب ستريمليت
+        cols[i].write(timings[key])
 
 st.divider()
 
@@ -48,9 +48,7 @@ if submit and task_name:
         "الوقت": task_time.strftime("%H:%M"),
         "الأهمية": priority
     })
-    st.success(f"تمت إضافة المهمة لجدول فراس!")
-
-st.divider()
+    st.success("تمت إضافة المهمة!")
 
 # --- الجزء الثالث: عرض الجدول المنظم ---
 if st.session_state.tasks:
@@ -59,4 +57,8 @@ if st.session_state.tasks:
     df = df.sort_values(by="الوقت")
     st.table(df)
     
-    if st.
+    if st.button("تفريغ الجدول"):
+        st.session_state.tasks = []
+        st.rerun()
+else:
+    st.info("الجدول فارغ حالياً. ابدأ بإضافة مهامك.")
