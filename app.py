@@ -34,4 +34,9 @@ st.divider()
 # --- الجزء الثاني: إدارة المهام ---
 st.subheader("📝 جدول المهام اليومي")
 
-if 'tasks' not in st.session_state:
+# حل مشكلة الـ Indentation: كتبنا الشرط في سطر واحد
+if 'tasks' not in st.session_state: st.session_state.tasks = []
+
+# إضافة مهمة جديدة
+with st.expander("➕ أضف مهمة جديدة"):
+    t_name = st.text
