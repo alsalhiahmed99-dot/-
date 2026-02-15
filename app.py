@@ -35,10 +35,3 @@ st.divider()
 st.subheader("📝 جدول المهام اليومي")
 
 if 'tasks' not in st.session_state:
-    st.session_state.tasks = []
-
-# فورم إضافة مهمة جديدة - تم تعديل المسافات هنا بدقة
-with st.expander("➕ أضف مهمة جديدة"):
-    with st.form(key="my_form"):
-        t_name = st.text_input("ماذا ستفعل؟")
-        t_time = st.time_input("في أي وقت؟")
