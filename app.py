@@ -6,7 +6,7 @@ import requests
 # 1. إعدادات الصفحة
 st.set_page_config(page_title="مُنظم فراس المعمري", page_icon="👑", layout="wide")
 
-# 2. تصميم CSS ملكي ومختصر
+# 2. تصميم CSS ملكي (ثابت ما يضيع)
 css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700&family=Tajawal:wght@500&display=swap');
@@ -18,11 +18,11 @@ css = """
 """
 st.markdown(css, unsafe_allow_html=True)
 
-# 3. العناوين باسم فراس المعمري
+# 3. العناوين
 st.markdown('<h1 class="main-title">FERAS SCHEDULER</h1>', unsafe_allow_html=True)
-st.markdown('<p style="text-align: center; color: #C0C0C0;">نظام إدارة الوقت - إبداع المبرمج فراس حمد المعمري</p>', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; color: #C0C0C0;">نظام إدارة الوقت الذكي - إبداع المبرمج فراس حمد المعمري</p>', unsafe_allow_html=True)
 
-# 4. أوقات الصلاة (مسقط)
+# 4. أوقات الصلاة
 def get_p():
     try:
         r = requests.get("http://api.aladhan.com/v1/timingsByCity?city=Muscat&country=Oman&method=1").json()
@@ -35,13 +35,4 @@ if t:
     cols = st.columns(5)
     p_names = {"Fajr":"الفجر", "Dhuhr":"الظهر", "Asr":"العصر", "Maghrib":"المغرب", "Isha":"العشاء"}
     for i, (k, v) in enumerate(p_names.items()):
-        cols[i].markdown(f'<div class="prayer-card"><b style="color:#D4AF37">{v}</b><br>{t[k]}</div>', unsafe_allow_html=True)
-
-st.divider()
-
-# 5. إدارة المهام
-if 'f_tasks' not in st.session_state: st.session_state.f_tasks = []
-
-c1, c2 = st.columns(2)
-with c1:
-    n = st.text_input("
+        cols[i].markdown(f'<div class="prayer
