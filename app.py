@@ -3,49 +3,52 @@ import pandas as pd
 from datetime import datetime
 import requests
 
-# 1. إعدادات الصفحة
-st.set_page_config(page_title="منظم فراس المعمري", layout="wide")
+# 1. إعدادات
+st.set_page_config(page_title="منظم فراس", layout="wide")
 
-# 2. تصميم فخم بأسطر قصيرة (عشان ما يقطع)
-st.markdown("<style>", unsafe_allow_html=True)
-st.markdown(".stApp { background-color: #0e1117; color: white; }", unsafe_allow_html=True)
-st.markdown("h1 { color: #D4AF37 !important; text-align: center; }", unsafe_allow_html=True)
-st.markdown(".p-card { background: rgba(212,175,55,0.1); padding: 15px; ", unsafe_allow_html=True)
-st.markdown("border: 1px solid #D4AF37; border-radius: 12px; text-align: center; }", unsafe_allow_html=True)
-st.markdown("</style>", unsafe_allow_html=True)
+# 2. تصميم (أسطر قصيرة)
+st.markdown("<style>h1{color:#D4AF37;text-align:center;}</style>", unsafe_allow_html=True)
 
 st.title("📅 FERAS SCHEDULER")
-st.markdown("<p style='text-align:center;'>بإشراف المبرمج: فراس حمد المعمري</p>", unsafe_allow_html=True)
+st.write("المبرمج: فراس حمد المعمري")
 
-# 3. جلب مواقيت الصلاة (حسب توقيت مسقط - معتمد)
-def get_oman_times():
-    # استخدام إحداثيات مسقط لضمان مطابقة توقيت وزارة الأوقاف
-    url = "http://api.aladhan.com/v1/timings?latitude=23.5859&longitude=58.4059&method=1"
+# 3. جلب التوقيت (إحداثيات مسقط لضمان الدقة)
+def get_t():
+    u = "http://api.aladhan.com/v1/timings?latitude=23.58&longitude=58.40&method=1"
     try:
-        r = requests.get(url).json()
+        r = requests.get(u).json()
         return r['data']['timings']
     except: return None
 
-def to_12h(t):
-    return datetime.strptime(t, "%H:%M").strftime("%I:%M %p")
+t = get_t()
 
-tm = get_oman_times()
-
-if tm:
-    st.subheader("🕌 مواقيت الصلاة (حسب توقيت السلطنة المعتمَد)")
-    c1, c2, c3, c4, c5 = st.columns(5)
+if t:
+    st.subheader("🕌 مواقيت الصلاة (عمان)")
+    # عرض بسيط ومباشر لتجنب أخطاء الأعمدة
     p = {"Fajr":"الفجر", "Dhuhr":"الظهر", "Asr":"العصر", "Maghrib":"المغرب", "Isha":"العشاء"}
-    
-    # توزيع المواقيت بأسطر منفصلة لتجنب SyntaxError
-    with c1: st.markdown(f'<div class="p-card"><b>{p["Fajr"]}</b><br>{to_12h(tm["Fajr"])}</div>', unsafe_allow_html=True)
-    with c2: st.markdown(f'<div class="p-card"><b>{p["Dhuhr"]}</b><br>{to_12h(tm["Dhuhr"])}</div>', unsafe_allow_html=True)
-    with c3: st.markdown(f'<div class="p-card"><b>{p["Asr"]}</b><br>{to_12h(tm["Asr"])}</div>', unsafe_allow_html=True)
-    with c4: st.markdown(f'<div class="p-card"><b>{p["Maghrib"]}</b><br>{to_12h(tm["Maghrib"])}</div>', unsafe_allow_html=True)
-    with c5: st.markdown(f'<div class="p-card"><b>{p["Isha"]}</b><br>{to_12h(tm["Isha"])}</div>', unsafe_allow_html=True)
+    for k, v in p.items():
+        tm = datetime.strptime(t[k], "%H:%M").strftime("%I:%M %p")
+        st.write(f"**{v}:** {tm}")
 
 st.divider()
 
-# 4. نظام المهام
+# 4. المهام
 if 'list' not in st.session_state: st.session_state.list = []
 
-col_a, col_
+job = st.text_input("المهمة")
+tm_in = st.time_input("الوقت")
+
+if st.button("إضافة"):
+    if job:
+        st.session_state.list.append({"المهمة": job, "الوقت": tm_in.strftime("%I:%M %p")})
+        st.rerun()
+
+# 5. الجدول
+if st.session_state.list:
+    st.table(pd.DataFrame(st.session_state.list))
+    if st.button("تفريغ"):
+        st.session_state.list = []
+        st.rerun()
+
+# 6. التوقيع
+st.sidebar.write("فراس حمد المعمري")
