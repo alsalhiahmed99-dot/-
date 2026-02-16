@@ -1,39 +1,60 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime as dt
 import requests
 
-# 1. الإعدادات
-st.set_page_config(page_title="منظم فراس", layout="wide")
+# 1. Page Config
+st.set_page_config(page_title="Feras Task", layout="wide")
 
-# 2. تصميم ملكي (بأسطر قصيرة لتجنب القطع)
-st.markdown("<style>", unsafe_allow_html=True)
-st.markdown(".stApp { background-color: #0e1117; color: white; }", unsafe_allow_html=True)
-st.markdown("h1 { color: #D4AF37 !important; text-align: center; }", unsafe_allow_html=True)
-st.markdown(".p-box { background: rgba(212,175,55,0.1); padding: 10px; ", unsafe_allow_html=True)
-st.markdown("border-radius: 10px; border: 1px solid #D4AF37; text-align: center; }", unsafe_allow_html=True)
-st.markdown("</style>", unsafe_allow_html=True)
+# 2. Style
+st.markdown("<style>h1{color:#D4AF37;text-align:center;}</style>", unsafe_allow_html=True)
 
+# 3. Title
 st.title("📅 FERAS SCHEDULER")
-st.markdown("<p style='text-align:center;'>المبرمج: فراس حمد المعمري</p>", unsafe_allow_html=True)
+st.write("---")
 
-# 3. جلب التوقيت العالمي (نظام 12 ساعة)
-st.subheader("🌍 التوقيت العالمي")
-city = st.text_input("اسم المدينة (بالإنجليزي):", "Muscat")
+# 4. Prayer Times
+city = st.text_input("City (EN):", "Muscat")
 
-def get_times(c):
-    url = f"http://api.aladhan.com/v1/timingsByCity?city={c}&country=Oman&method=4"
+def get_t(c):
+    u = f"http://api.aladhan.com/v1/timingsByCity?city={c}&country=Oman&method=4"
     try:
-        r = requests.get(url).json()
+        r = requests.get(u).json()
         return r['data']['timings'] if r['code']==200 else None
     except: return None
 
-def to_12h(t):
-    try: return datetime.strptime(t, "%H:%M").strftime("%I:%M %p")
-    except: return t
+res = get_t(city)
 
-tm = get_times(city)
+if res:
+    # تقسيم الأعمدة بأسطر قصيرة جداً
+    c1, c2, c3, c4, c5 = st.columns(5)
+    p = {"Fajr":"الفجر","Dhuhr":"الظهر","Asr":"العصر","Maghrib":"المغرب","Isha":"العشاء"}
+    # عرض كل وقت في عمود منفصل لتجنب الانقطاع
+    c1.metric(p["Fajr"], dt.strptime(res["Fajr"],"%H:%M").strftime("%I:%M %p"))
+    c2.metric(p["Dhuhr"], dt.strptime(res["Dhuhr"],"%H:%M").strftime("%I:%M %p"))
+    c3.metric(p["Asr"], dt.strptime(res["Asr"],"%H:%M").strftime("%I:%M %p"))
+    c4.metric(p["Maghrib"], dt.strptime(res["Maghrib"],"%H:%M").strftime("%I:%M %p"))
+    c5.metric(p["Isha"], dt.strptime(res["Isha"],"%H:%M").strftime("%I:%M %p"))
 
-if tm:
-    st.write(f"📍 مدينة: {city}")
-    cols =
+st.write("---")
+
+# 5. Tasks
+if 'tk' not in st.session_state: st.session_state.tk = []
+
+n = st.text_input("Task Name:")
+tm = st.time_input("Time:")
+if st.button("Add Task"):
+    if n:
+        st.session_state.tk.append({"Time":tm.strftime("%I:%M %p"),"Task":n})
+        st.rerun()
+
+# 6. View
+if st.session_state.tk:
+    st.table(pd.DataFrame(st.session_state.tk))
+    if st.button("Clear"):
+        st.session_state.tk = []
+        st.rerun()
+
+# 7. Sidebar
+st.sidebar.header("المصمم")
+st.sidebar.subheader("فراس حمد المعمري")
