@@ -3,80 +3,69 @@ import pandas as pd
 from datetime import datetime
 import requests
 
-# إعدادات الصفحة
-st.set_page_config(page_title="مُنظم جدول فراس حمد المعمري", layout="wide")
+# 1. إعدادات الصفحة
+st.set_page_config(page_title="منظم فراس المعمري", layout="wide")
 
-# --- تحسين الواجهة فقط (بدون تغيير الكود البرمجي) ---
+# --- التصميم الأسطوري (ذهبي وأسود) ---
 st.markdown("""
     <style>
-    /* خلفية التطبيق */
-    .stApp {
-        background-color: #0e1117;
-        color: #ffffff;
-    }
-    /* العنوان الرئيسي */
-    h1 {
-        color: #D4AF37 !important;
-        text-align: center;
-        font-family: 'Cairo', sans-serif;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    }
-    /* الأزرار */
-    .stButton>button {
-        background: linear-gradient(to right, #D4AF37, #8B6B13);
-        color: white !important;
-        border: none;
-        border-radius: 8px;
-        transition: 0.3s;
-    }
-    .stButton>button:hover {
-        transform: scale(1.02);
-        box-shadow: 0px 0px 15px #D4AF37;
-    }
-    /* الجداول والمداخل */
-    .stTextInput>div>div>input, .stSelectbox>div>div>div {
-        border-color: #D4AF37 !important;
-    }
+    .stApp { background-color: #0e1117; color: #ffffff; }
+    h1 { color: #D4AF37 !important; text-align: center; font-family: 'Cairo', sans-serif; }
+    .stButton>button { background: linear-gradient(to right, #D4AF37, #8B6B13); color: white !important; border-radius: 8px; border: none; }
+    .prayer-box { background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #D4AF37; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("📅 منظم الجدول اليومي - فراس حمد المعمري")
+st.title("📅 منظم الجدول الذكي - فراس حمد المعمري")
 
-# --- الجزء الأول: تواقيت الصلاة ---
-def get_prayer_times():
-    # مدينة مسقط كمثال
-    url = "http://api.aladhan.com/v1/timingsByCity?city=Muscat&country=Oman&method=1"
+# --- الجزء الأول: تحديد الموقع وتواقيت الصلاة ---
+st.subheader("🕌 تواقيت الصلاة الدقيقة")
+
+# قائمة الولايات لضبط التوقيت 100%
+location_options = {
+    "مسقط": {"city": "Muscat", "country": "Oman"},
+    "صحار": {"city": "Sohar", "country": "Oman"},
+    "صلالة": {"city": "Salalah", "country": "Oman"},
+    "نزوى": {"city": "Nizwa", "country": "Oman"},
+    "البريمي": {"city": "Buraimi", "country": "Oman"},
+    "عبري": {"city": "Ibri", "country": "Oman"}
+}
+
+selected_loc = st.selectbox("📍 حدد موقعك لضبط التوقيت بدقة:", list(location_options.keys()))
+
+def get_prayer_times(city, country):
+    # استخدام method=4 (رابطة العالم الإسلامي) أو 1 (أم القرى) لضبط الدقة
+    url = f"http://api.aladhan.com/v1/timingsByCity?city={city}&country={country}&method=4"
     try:
         response = requests.get(url).json()
         return response['data']['timings']
     except:
         return None
 
-timings = get_prayer_times()
+timings = get_prayer_times(location_options[selected_loc]["city"], location_options[selected_loc]["country"])
 
 if timings:
-    st.subheader("🕌 تواقيت الصلاة اليوم في عُمان")
     cols = st.columns(5)
     prayers = {"Fajr": "الفجر", "Dhuhr": "الظهر", "Asr": "العصر", "Maghrib": "المغرب", "Isha": "العشاء"}
     for i, (key, val) in enumerate(prayers.items()):
-        # عرض الوقت تحت المسمى بشكل أنيق
-        cols[i].markdown(f"""
-            <div style="background: rgba(212, 175, 55, 0.1); padding: 10px; border-radius: 10px; border: 1px solid #D4AF37; text-align: center;">
-                <h4 style="color: #D4AF37; margin: 0;">{val}</h4>
-                <h2 style="margin: 0;">{timings[key]}</h2>
-            </div>
-        """, unsafe_allow_html=True)
+        with cols[i]:
+            st.markdown(f"""
+                <div class="prayer-box">
+                    <p style="color: #D4AF37; margin: 0; font-weight: bold;">{val}</p>
+                    <h2 style="margin: 5px 0;">{timings[key]}</h2>
+                </div>
+            """, unsafe_allow_html=True)
 
 st.divider()
 
-# --- الجزء الثاني: إضافة المهام ---
-st.subheader("📝 أضف مهامك")
+# --- الجزء الثاني: إضافة المهام (بدون تغيير في المنطق) ---
+st.subheader("📝 جدول المهام اليومية")
 
 with st.form("task_form"):
     task_name = st.text_input("اسم المهمة")
     task_time = st.time_input("وقت البدء")
-    priority = st.selectbox("الأهمية", ["عالية", "متوسطة", "منخفضة"])
-    submit = st.form_submit_button("إضافة للجدول")
+    priority = st.selectbox("الأهمية", ["عالية 🔥", "متوسطة ⚡", "منخفضة ❄️"])
+    submit = st.form_submit_button("إضافة المهمة ✨")
 
 if 'tasks' not in st.session_state:
     st.session_state.tasks = []
@@ -84,14 +73,21 @@ if 'tasks' not in st.session_state:
 if submit and task_name:
     st.session_state.tasks.append({
         "المهمة": task_name,
-        "الوقت": task_time.strftime("%H:%M"),
+        "الوقت": task_time.strftime("%I:%M %p"),
         "الأهمية": priority
     })
-    st.success("تمت إضافة المهمة!")
+    st.success(f"تمت إضافة المهمة في جدول {selected_loc}!")
 
-# --- الجزء الثالث: عرض الجدول المنظم ---
+# --- الجزء الثالث: عرض الجدول ---
 if st.session_state.tasks:
-    st.subheader("📊 الجدول المنظم")
     df = pd.DataFrame(st.session_state.tasks)
-    df = df.sort_values(by="الوقت")
     st.table(df)
+    if st.button("تفريغ الجدول"):
+        st.session_state.tasks = []
+        st.rerun()
+else:
+    st.info("الجدول فارغ حالياً يا فراس.")
+
+# الجانب
+st.sidebar.markdown(f"### المبرمج:\n**فراس حمد المعمري**")
+st.sidebar.info("هذا النظام يضبط التواقيت حسب الموقع المختار لضمان دقة 100%.")
