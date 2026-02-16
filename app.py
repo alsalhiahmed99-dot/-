@@ -4,35 +4,57 @@ from datetime import datetime
 import requests
 
 # 1. إعدادات الصفحة
-st.set_page_config(page_title="مُنظم فراس المعمري", page_icon="👑", layout="wide")
+st.set_page_config(page_title="مُنظم فراس", layout="wide")
 
-# 2. تصميم CSS ملكي (ثابت ما يضيع)
-css = """
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700&family=Tajawal:wght@500&display=swap');
-    .stApp {background: #0d0d0d; color: white; font-family: 'Tajawal', sans-serif;}
-    .main-title {text-align: center; color: #D4AF37; font-family: 'Cairo'; font-size: 45px; text-shadow: 2px 2px 10px rgba(212,175,55,0.3);}
-    .prayer-card {background: rgba(212, 175, 55, 0.1); border: 1px solid #D4AF37; border-radius: 10px; padding: 10px; text-align: center;}
-    div.stButton > button {background: linear-gradient(45deg, #D4AF37, #8B6B13) !important; color: white !important; border-radius: 20px !important; width: 100% !important; font-weight: bold !important;}
-</style>
-"""
-st.markdown(css, unsafe_allow_html=True)
+# 2. تصميم CSS مختصر بأسطر قصيرة
+st.markdown("<style>", unsafe_allow_html=True)
+st.markdown("body { background-color: #0d0d0d; color: white; }", unsafe_allow_html=True)
+st.markdown(".main-title { text-align: center; color: #D4AF37; font-size: 40px; }", unsafe_allow_html=True)
+st.markdown(".p-card { background: #1a1a1a; border: 1px solid #D4AF37; padding: 10px; border-radius: 10px; text-align: center; }", unsafe_allow_html=True)
+st.markdown("</style>", unsafe_allow_html=True)
 
 # 3. العناوين
 st.markdown('<h1 class="main-title">FERAS SCHEDULER</h1>', unsafe_allow_html=True)
-st.markdown('<p style="text-align: center; color: #C0C0C0;">نظام إدارة الوقت الذكي - إبداع المبرمج فراس حمد المعمري</p>', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center;">إبداع: فراس حمد المعمري</p>', unsafe_allow_html=True)
 
 # 4. أوقات الصلاة
 def get_p():
     try:
-        r = requests.get("http://api.aladhan.com/v1/timingsByCity?city=Muscat&country=Oman&method=1").json()
+        url = "http://api.aladhan.com/v1/timingsByCity?city=Muscat&country=Oman&method=1"
+        r = requests.get(url).json()
         return r['data']['timings']
     except: return None
 
 t = get_p()
 if t:
-    st.markdown("<br>", unsafe_allow_html=True)
-    cols = st.columns(5)
-    p_names = {"Fajr":"الفجر", "Dhuhr":"الظهر", "Asr":"العصر", "Maghrib":"المغرب", "Isha":"العشاء"}
-    for i, (k, v) in enumerate(p_names.items()):
-        cols[i].markdown(f'<div class="prayer
+    st.write("---")
+    c = st.columns(5)
+    names = {"Fajr":"الفجر", "Dhuhr":"الظهر", "Asr":"العصر", "Maghrib":"المغرب", "Isha":"العشاء"}
+    for i, (k, v) in enumerate(names.items()):
+        # تم تقسيم السطر الطويل لأسطر قصيرة لتجنب الخطأ
+        with c[i]:
+            st.markdown(f'<div class="p-card">', unsafe_allow_html=True)
+            st.markdown(f'<b style="color:#D4AF37">{v}</b>', unsafe_allow_html=True)
+            st.markdown(f'<br>{t[k]}</div>', unsafe_allow_html=True)
+
+st.write("---")
+
+# 5. إدارة المهام
+if 'tasks' not in st.session_state:
+    st.session_state.tasks = []
+
+col1, col2 = st.columns(2)
+with col1:
+    n = st.text_input("المهمة:")
+    p = st.selectbox("الأهمية:", ["عالية 🔥", "متوسطة ⚡", "عادية"])
+with col2:
+    tm = st.time_input("الوقت:")
+    if st.button("إضافة للملف ✨"):
+        if n:
+            st.session_state.tasks.append({"الوقت": tm.strftime("%I:%M %p"), "المهمة": n, "الأهمية": p})
+            st.rerun()
+
+# 6. الجدول
+if st.session_state.tasks:
+    st.table(pd.DataFrame(st.session_state.tasks))
+    if st
