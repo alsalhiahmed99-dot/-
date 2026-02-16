@@ -3,38 +3,35 @@ import pandas as pd
 from datetime import datetime
 import requests
 
-# 1. إعدادات الصفحة
-st.set_page_config(page_title="منظم فراس المعمري", layout="wide")
+# إعدادات الصفحة
+st.set_page_config(page_title="مُنظم جدول فراس", layout="wide")
 
-# 2. الواجهة الأسطورية (طريقة مختصرة عشان ما يظهر النص)
-st.markdown("<style>h1{color:#D4AF37 !important; text-align:center;} .stMetric{color:#D4AF37 !important;}</style>", unsafe_allow_html=True)
+st.title("📅 منظم الجدول اليومي - فراس")
 
-# العنوان باسم فراس
-st.markdown('# 📅 FERAS SCHEDULER')
-st.markdown('<p style="text-align: center;">إبداع المبرمج: فراس حمد المعمري</p>', unsafe_allow_html=True)
-
-# --- الجزء الأول: أوقات الصلاة ---
+# --- الجزء الأول: تواقيت الصلاة ---
 def get_prayer_times():
+    # مدينة مسقط كمثال
     url = "http://api.aladhan.com/v1/timingsByCity?city=Muscat&country=Oman&method=1"
     try:
-        r = requests.get(url).json()
-        return r['data']['timings']
+        response = requests.get(url).json()
+        return response['data']['timings']
     except:
         return None
 
 timings = get_prayer_times()
 
 if timings:
-    st.subheader("🕌 تواقيت الصلاة اليوم - مسقط")
+    st.subheader("🕌 تواقيت الصلاة اليوم في عُمان")
     cols = st.columns(5)
-    p_names = {"Fajr":"الفجر", "Dhuhr":"الظهر", "Asr":"العصر", "Maghrib":"المغرب", "Isha":"العشاء"}
-    for i, (k, v) in enumerate(p_names.items()):
-        cols[i].metric(label=v, value=timings[k])
+    prayers = {"Fajr": "الفجر", "Dhuhr": "الظهر", "Asr": "العصر", "Maghrib": "المغرب", "Isha": "العشاء"}
+    for i, (key, val) in enumerate(prayers.items()):
+        cols[i].metric(label=val, value=val) # تم تعديل العرض ليناسب ستريمليت
+        cols[i].write(timings[key])
 
 st.divider()
 
 # --- الجزء الثاني: إضافة المهام ---
-st.subheader("📝 إضافة المهام اليومية")
+st.subheader("📝 أضف مهامك")
 
 with st.form("task_form"):
     task_name = st.text_input("اسم المهمة")
@@ -46,4 +43,22 @@ if 'tasks' not in st.session_state:
     st.session_state.tasks = []
 
 if submit and task_name:
-    st.session
+    st.session_state.tasks.append({
+        "المهمة": task_name,
+        "الوقت": task_time.strftime("%H:%M"),
+        "الأهمية": priority
+    })
+    st.success("تمت إضافة المهمة!")
+
+# --- الجزء الثالث: عرض الجدول المنظم ---
+if st.session_state.tasks:
+    st.subheader("📊 الجدول المنظم")
+    df = pd.DataFrame(st.session_state.tasks)
+    df = df.sort_values(by="الوقت")
+    st.table(df)
+    
+    if st.button("تفريغ الجدول"):
+        st.session_state.tasks = []
+        st.rerun()
+else:
+    st.info("الجدول فارغ حالياً. ابدأ بإضافة مهامك.")
